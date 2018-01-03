@@ -27,61 +27,35 @@ Clone this repository and copy soundmodular.py into your project directory.
 
 ## How To
 
-The following is example code that interfaces `soundmodular` with PyAudio, file output as well as the syntax for patching sounds.
-Create a file called patcher.py and paste this code. Ensure dependencies are installed. It should output a sequence of sounds.
+Create a python file and paste this code. Ensure dependencies are available and installed. It should output a sequence of sounds.
 
 ```python
-import pyaudio
-import soundmodular as sm
-import wave
+from soundmodular import Patcher
+from pyaudio import paInt16
 
-# Setup PyAudio and File
-Fs = 22000
+options = {
+    'format': paInt16,
+    'channels': 2,
+    'sampling_rate': 22000,
+    'save_file': 'testfile.wav'
+}
 
-# Setup playback stream on pyaudio and set parameters
-p = pyaudio.PyAudio()
-stream = p.open(format = pyaudio.paInt16,
-                channels = 2,
-                rate = Fs,
-                input = False,
-                output = True)
+patcher = Patcher(options)
+module = patcher.module
+T = 0.3
 
-# Open a wavefile in write mode and set parameters
-filename = 'test_file' + '.wav'
-wf = wave.open(filename, 'w')
-wf.setnchannels(2)		# stereo
-wf.setsampwidth(2)		# four bytes per sample
-wf.setframerate(Fs)
+noise = module.wnoise(0.7*T, 0.2*T, 0.6)
 
+for n in range(2,6):
+    filt = module.filterbank_22k(noise, n, 1)
+    patcher.to_master(filt, 0.5, 0.5)
 
-# Single function to handle playback and file save
-def to_master(x, L, R):
+osc = module.osc_tone(T, 440)
+patcher.to_master(osc, 0.5, 0.5)
 
-    # Hard Clip amplitude to fit in bit range
-    for k in range(0,len(x)):
-        if x[k] > 32767:
-            x[k] = 32767
-        elif x[k] < -32768:
-            x[k] = -32768
-
-    str_out = sm.pan_stereo(x, L, R) # Returns a packed struct ready to write
-
-    stream.write(str_out) # Write to playback stream
-    wf.writeframes(str_out) # Write to file
-
-
-T = 1 # Create 1 second of audio
-to_master(sm.oscTone(T,0.5*T,440,Fs),0.8,0.3) # Oscillator -> Master
-to_master(sm.wnoise(0.7*T,0.5*T,Fs,0.6),0.5,1) # WhiteNoise -> Master
-to_master(sm.filterbank_22k(3,1,sm.wnoise(0.7*T,0.9*T,Fs,1)),0.5,0.5) # WhiteNoise -> Filterbank -> Master
-
-wf.close()
-stream.close()
-p.terminate()
-print 'Done'
+patcher.terminate()
 ```
-
-All functions except `pan_stereo()` return a list corresponding to a block of stereo audio, and hence each output can be passed as parameter into another function.
+`options` contains parameters necessary to setup the PyAudio and wave instances. soundmodular offers a limited API to these libraries.
 
 ## Available Functions
 
