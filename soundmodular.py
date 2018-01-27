@@ -21,6 +21,7 @@ class Patcher:
     """
 
     def __init__(self, user_dict):
+        print "Setting up soundmodular Patcher."
         self.module = Module(user_dict['sampling_rate'])
 
         self.audio = pyaudio.PyAudio()
