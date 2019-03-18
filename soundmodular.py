@@ -1,4 +1,6 @@
 __author__ = 'Srinivasan'
+__version_ = '1.0.1'
+
 
 import pyaudio
 import wave
@@ -356,7 +358,6 @@ class Module:
 
         return out_block
 
-    @staticmethod
     def silence(self, duration):
         """
         Silence - returns an empty audio block of specified duration to create silence
