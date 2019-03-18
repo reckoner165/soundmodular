@@ -1,4 +1,6 @@
 __author__ = 'Srinivasan'
+__version_ = '1.0.1'
+
 
 import pyaudio
 import wave
@@ -21,6 +23,7 @@ class Patcher:
     """
 
     def __init__(self, user_dict):
+        print "Setting up soundmodular Patcher."
         self.module = Module(user_dict['sampling_rate'])
 
         self.audio = pyaudio.PyAudio()
@@ -352,5 +355,17 @@ class Module:
                 out_block[n] = int(ratio * gain * block[n])
             else:
                 out_block[n] = int(gain * block[n])
+
+        return out_block
+
+    def silence(self, duration):
+        """
+        Silence - returns an empty audio block of specified duration to create silence
+        :param duration: Duration in seconds (int)
+        :return: Output audio block (list)
+        """
+
+        num_samples = int(duration * self.sampling_rate)    # N : Number of samples to play
+        out_block = [0 for n in range(0, num_samples)]
 
         return out_block
